@@ -1,0 +1,8 @@
+{
+   "baseURL": "http://localhost:4010",
+   "brand":"Gucci",
+   "userPoolId":"eu-west-1_0RjrKKZBi",
+   "logLevel":"info",
+   "authAPIVersion":"v1",
+   "baseCTToolsURL": "https://api.europe-west1.gcp.commercetools.com/prj-catalyst-01"
+}

@@ -1,0 +1,231 @@
+openapi: 3.0.3
+info:
+  title: The CaaS Public Authentication/Authorization API
+  description: |
+    A document that details the Public-facing CaaS Authentication API.
+
+    #### What is the public API?
+
+    The CaaS Public API is designed to be facing the wider internet and is designed to be accessed by distributed
+    untrusted clients (CaaS SPAs, CaaS Smartphone Apps, Script Kiddies, State-backed hacker, CaaS Devs, WTC TestRunners
+    etc).
+
+  version: 1.0.0
+servers:
+- url: 'https'
+paths:
+  /v1/signup:
+    options:
+      operationId: SignupPreflight
+      description: Enables CORS
+      tags:
+      - CORS
+      responses:
+        200:
+          $ref: '#/components/responses/200CORSPreflightResponse'
+    post:
+      operationId: Signup
+      summary: Sign up for a new account.
+      tags:
+      - Service
+      requestBody:
+        $ref: '#/components/requestBodies/SignupRequestBody'
+      responses:
+        200:
+          description: Success
+  /v1/signin:
+    options:
+      operationId: SigninPreflight
+      description: Enables CORS
+      tags:
+      - CORS
+      responses:
+        200:
+          $ref: '#/components/responses/200CORSPreflightResponse'
+    post:
+      operationId: Signin
+      summary: Sign into an existing account.
+      tags:
+      - Service
+      description: |
+        The endpoint to log into and receive JWT credentials as cookies.
+        There are numerous cases for both success and failure responses for the client code to handle.
+      requestBody:
+        $ref: '#/components/requestBodies/SigninRequestBody'
+      responses:
+        200:
+          description: >-
+            The user has signed in.
+
+            The client will receive two JSON Web Tokens (JWTs) and a refresh token.
+
+            1. An Access Token in the response body.
+            1. An ID Token in the response body.
+              * This is a readable cookie and contains various claims about the user and the token.
+            1. A refresh token for use with the [Refresh endpoint](/#operation/Refresh).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigninAPIResponseData'
+        400:
+          $ref: '#/components/responses/400BadRequest'
+        401:
+          $ref: '#/components/responses/401Unauthorised'
+        500:
+          $ref: '#/components/responses/500InternalServerError'
+  /v1/refresh:
+    options:
+      operationId: RefreshPreflight
+      description: Enables CORS
+      tags:
+      - CORS
+      responses:
+        200:
+          $ref: '#/components/responses/200CORSPreflightResponse'
+    post:
+      operationId: Refresh
+      summary: Retrieves refreshed access and identity tokens
+      tags:
+      - Service
+      requestBody:
+        $ref: '#/components/requestBodies/RefreshRequestBody'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshAPIResponseData'
+  /v1/signout:
+    options:
+      operationId: SignoutPreflight
+      description: Enables CORS
+      tags:
+      - CORS
+      responses:
+        200:
+          $ref: '#/components/responses/200CORSPreflightResponse'
+    post:
+      operationId: Signout
+      summary: Signs the user out of their current logged-in context.
+      tags:
+      - Service
+      requestBody:
+        $ref: '#/components/requestBodies/SignoutRequestBody'
+      responses:
+        200:
+          description: Success. The user's token has been revoked.
+        202:
+          description: Success. However there is no guarantee that the user's tokens have been revoked.
+        400:
+          $ref: '#/components/responses/400BadRequest'
+components:
+  requestBodies:
+    SignupRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SignupData'
+    SigninRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SigninRequestData'
+    RefreshRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RefreshTokenData'
+    SignoutRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RefreshTokenData'
+  schemas:
+    CognitoCredentialsPair:
+      type: object
+      required:
+      - accessToken
+      - identityToken
+      properties:
+        accessToken:
+          type: string
+          format: JWT
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNjc4ZjIzMzQ3ZTM0MTBkYjdlNjg3Njc4MjNiMmQ3MCIsImlhdCI6MTQ2NjYzMzMxNywibmJmIjoxNDY2NjMzMzE3LCJleHAiOjE0NjY2MzY5MTd9.IqKZXazeB4yKkej9FEVQujUWpqYfPJpsJiGk_OV-nUQ"
+        identityToken:
+          type: string
+          format: JWT
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNjc4ZjIzMzQ3ZTM0MTBkYjdlNjg3Njc4MjNiMmQ3MCIsImlhdCI6MTQ2NjYzMzMxNywibmJmIjoxNDY2NjMzMzE3LCJleHAiOjE0NjY2MzY5MTd9.IqKZXazeB4yKkej9FEVQujUWpqYfPJpsJiGk_OV-nUQ"
+    RefreshAPIResponseData:
+      allOf:
+      - $ref: '#/components/schemas/CognitoCredentialsPair'
+    SigninAPIResponseData:
+      allOf:
+      - $ref: '#/components/schemas/CognitoCredentialsPair'
+      - $ref: '#/components/schemas/RefreshTokenData'
+    RefreshTokenData:
+      type: object
+      required:
+      - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: "Q3ZTM0MTBkYjdlNjg3Njc4MjNiMmQ3MCIsImlhdCI6MTQ2NjYzMzMxNywibmJm"
+    SigninRequestData:
+      type: object
+      required:
+      - username
+      - password
+      properties:
+        username:
+          type: string
+          format: email
+          example: Bender@Ilovebender.com
+        password:
+          type: string
+          example: a77mycircuit5
+    SignupData:
+      type: object
+      allOf:
+      - type: object
+        required:
+        - firstname
+        - lastname
+        properties:
+          firstname:
+            type: string
+            example: Max
+          lastname:
+            type: string
+            example: Verstappen
+      - $ref: '#/components/schemas/SigninRequestData'
+  responses:
+    200CORSPreflightResponse:
+      description: Default response for CORS method
+      headers:
+        Access-Control-Allow-Origin:
+          schema:
+            type: string
+        Access-Control-Allow-Methods:
+          schema:
+            type: string
+        Access-Control-Allow-Headers:
+          schema:
+            type: string
+    400BadRequest:
+      description: A response given when the request parameters are invalid.
+    401Unauthorised:
+      description: A response given when the user's tokens have expired, been tampered with, dont relate etc.
+    404NotFound:
+      description: >-
+        A response given when the user is attempt to access a resource that does not exist, or that they are not
+        permitted to access. Is preferred over 401 to prevent disclosure of internal data labels to unauthorised
+        users.
+    500InternalServerError:
+      description: >-
+        A response given when a downstream dependency has failed, behaved unexpectedly, or the implementing service
+        has encountered an error from which it cannot recover.

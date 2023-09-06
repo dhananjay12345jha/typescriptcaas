@@ -1,0 +1,49 @@
+openapi: 3.0.3
+info:
+  title: The CaaS Private Authentication/Authorization API
+  description: |
+    A document that details the Private-facing CaaS Authentication API.
+
+    #### What is the private API?
+
+    The CaaS private API is designed to be facing trusted, internal applications.
+  version: 1.0.0
+servers:
+- url: 'https'
+paths:
+  /v1/token/introspect:
+    post:
+      operationId: TokenIntrospect
+      security: [ ]
+      summary: Introspects a given token. RFC 7662 Compliant.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+              - token
+      responses:
+        200:
+          description: The introspection response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: boolean
+                    example: true
+                  scope:
+                    type: string
+                  exp:
+                    type: integer
+                  iat:
+                    type: integer
+                  sub:
+                    type: string
+                required:
+                - active

@@ -1,0 +1,7 @@
+{
+   "baseURL": "http://localhost:4010",
+   "brand":"integ test",
+   "logLevel":"info",
+   "authAPIVersion":"v1",
+   "baseCTToolsURL": "https://api.europe-west1.gcp.commercetools.com/prj-catalyst-01"
+}
